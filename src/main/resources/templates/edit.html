@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout (~{::body})}">
+<body>
+<form th:action="@{/contacts/{id}/edit(id=${contact.getId()})}" method="post">
+    <fieldset th:replace="~{new :: contact_fieldset}"></fieldset>
+</form>
+
+<form th:action="@{/contacts/{id}/delete(id=${contact.getId()})}" method="post">
+    <button>Delete Contact</button>
+</form>
+
+<p>
+    <a href="/contacts/">Back</a>
+</p>
+</body>
+</html>

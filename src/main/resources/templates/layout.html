@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html th:fragment="layout (content)" xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contacts</title>
+    <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+    <header>
+        <h1>Contact.app</h1>
+        <h2>A Demo Contacts Application</h2>
+    </header>
+    <main th:replace="${content}"></main>
+</body>
+</html>

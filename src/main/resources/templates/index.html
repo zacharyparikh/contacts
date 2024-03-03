@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout (~{::body})}">
+<body>
+<form action="/contacts" method="get" class="tool-bar">
+    <label for="search">Search Term</label>
+    <input id="search" type="search" name="q" th:value="${param.q}">
+    <input type="submit" value="Search"/>
+</form>
+<table>
+    <thead>
+    <tr>
+        <th>First</th> <th>Last</th> <th>Phone</th> <th>Email</th> <th></th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr th:each="contact : ${contacts}">
+            <td th:text="${contact.getFirst()}"></td>
+            <td th:text="${contact.getLast()}"></td>
+            <td th:text="${contact.getPhone()}"></td>
+            <td th:text="${contact.getEmail()}"></td>
+            <td>
+                <a th:href="@{/contacts/{id}/edit(id=${contact.getId()})}">Edit</a>
+                <a th:href="@{/contacts/{id}(id=${contact.getId()})}">View</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<p>
+    <a href="/contacts/new">Add Contact</a>
+</p>
+<p th:if="${message}" th:text="${message}"></p>
+</body>
+</html>

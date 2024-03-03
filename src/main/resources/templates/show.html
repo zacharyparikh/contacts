@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout (~{::body})}">
+<body>
+<h1 th:text="|${contact.getFirst()} ${contact.getLast()}|"></h1>
+
+<div>
+    <div th:text="|Phone: ${contact.getPhone()}|"></div>
+    <div th:text="|Email: ${contact.getEmail()}|"></div>
+</div>
+
+<p>
+    <a th:href="@{/contacts/${id}/edit(id=${contact.getId()})}">Edit</a>
+    <a href="/contacts">Back</a>
+</p>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" th:replace="~{layout :: layout (~{::body})}">
+<body>
+
+<form action="/contacts/new" method="post">
+    <fieldset th:fragment="contact_fieldset">
+        <legend>Contact Values</legend>
+        <p>
+            <label for="first_name">First Name</label>
+            <input name="first_name" id="first_name" type="text" placeholder="First Name"
+                   th:value="${contact.getFirst()}">
+            <span class="error" th:text="${contact.getErrors().first()}"></span>
+        </p>
+        <p>
+            <label for="last_name">Last Name</label>
+            <input name="last_name" id="last_name" type="text" placeholder="Last Name"
+                   th:value="${contact.getLast()}">
+            <span class="error" th:text="${contact.getErrors().last()}"></span>
+        </p>
+        <p>
+            <label for="phone">Phone</label>
+            <input name="phone" id="phone" type="text" placeholder="Phone"
+                   th:value="${contact.getPhone()}">
+            <span class="error" th:text="${contact.getErrors().phone()}"></span>
+        </p>
+        <p>
+            <label for="email">Email</label>
+            <input name="email" id="email" type="email" placeholder="Email"
+                   th:value="${contact.getEmail()}">
+            <span class="error" th:text="${contact.getErrors().email()}"></span>
+        </p>
+        <button>Save</button>
+    </fieldset>
+</form>
+
+<p>
+    <a href="/contacts">Back</a>
+</p>
+</body>
+</html>
