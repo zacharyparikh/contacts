@@ -1,146 +1,67 @@
 package dev.parikh.contact;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+import org.thymeleaf.templatemode.TemplateMode;
 
 @SpringBootApplication
-@Controller
 public class ContactApplication {
 
-    private final ContactRepository repository;
+    private final ApplicationContext applicationContext;
 
-    public ContactApplication(ContactRepository repository) {
-        this.repository = repository;
+    public ContactApplication(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public static void main(String[] args) {
         SpringApplication.run(ContactApplication.class, args);
     }
 
-    @GetMapping("/")
-    String index() {
-        return "redirect:/contacts";
+    @Bean
+    public SpringResourceTemplateResolver templateResolver(){
+        // SpringResourceTemplateResolver automatically integrates with Spring's own
+        // resource resolution infrastructure, which is highly recommended.
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(this.applicationContext);
+        templateResolver.setPrefix("classpath:/templates/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setCharacterEncoding("UTF-8");
+        // HTML is the default value, added here for the sake of clarity.
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        // Template cache is true by default. Set to false if you want
+        // templates to be automatically updated when modified.
+        templateResolver.setCacheable(true);
+        return templateResolver;
     }
 
-    @GetMapping("/contacts")
-    String contacts(@RequestParam("q") Optional<String> search, Model model,
-                    HttpServletRequest request) {
-        List<Contact> contacts;
-
-        if (search.isEmpty()) {
-            contacts = repository.findAll();
-        } else {
-            contacts = repository.findAll();
-        }
-
-        Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
-
-        if (flashMap != null) {
-            Contact newContact = (Contact) flashMap.get("newContact");
-            if (newContact != null) {
-                model.addAttribute("newContact", newContact);
-            }
-
-            String message = (String) flashMap.get("message");
-            if (message != null) {
-                model.addAttribute("message", message);
-            }
-        }
-
-        model.addAttribute("contacts", contacts);
-        return "index";
+    @Bean
+    public SpringTemplateEngine templateEngine(){
+        // SpringTemplateEngine automatically applies SpringStandardDialect and
+        // enables Spring's own MessageSource message resolution mechanisms.
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver());
+        // Enabling the SpringEL compiler with Spring 4.2.4 or newer can
+        // speed up execution in most scenarios, but might be incompatible
+        // with specific cases when expressions in one template are reused
+        // across different data types, so this flag is "false" by default
+        // for safer backwards compatibility.
+        templateEngine.setEnableSpringELCompiler(true);
+        return templateEngine;
     }
 
-    @GetMapping("/contacts/{id}")
-    String showContact(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
-        Optional<Contact> contact = repository.findById(id);
-
-        if (contact.isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "Contact ID %d not found".formatted(id));
-            return "redirect:/contacts";
-        }
-
-        model.addAttribute("contact", contact.get());
-
-        return "show";
-    }
-
-    @GetMapping("/contacts/{id}/edit")
-    String editContactGet(@PathVariable Long id, Model model,
-                          RedirectAttributes redirectAttributes) {
-        Optional<Contact> contact = repository.findById(id);
-
-        if (contact.isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "Contact ID %d not found".formatted(id));
-            return "redirect:/contacts";
-        }
-
-        model.addAttribute("contact", contact.get());
-
-        return "edit";
-    }
-
-    @PostMapping("/contacts/{id}/edit")
-    String editContact(@PathVariable Long id,
-                       @RequestParam("first_name") String firstName,
-                       @RequestParam("last_name") String lastName,
-                       @RequestParam("phone") String phone,
-                       @RequestParam("email") String email) {
-        repository.findById(id).map(contact -> {
-            contact.setFirst(firstName);
-            contact.setLast(lastName);
-            contact.setPhone(phone);
-            contact.setEmail(email);
-            return repository.save(contact);
-        }).orElseGet(() -> {
-            var contact = Contact.builder().first(firstName).last(lastName).phone(phone)
-                    .email(email).build();
-            contact.setId(id);
-            return repository.save(contact);
-        });
-
-        return "redirect:/contacts/" + id;
-    }
-
-    @PostMapping("/contacts/{id}/delete")
-    String deleteContact(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        repository.deleteById(id);
-        redirectAttributes.addFlashAttribute("message", "Deleted Contact!");
-        return "redirect:/contacts";
-    }
-
-    @GetMapping("/contacts/new")
-    String newContactGet(Model model) {
-        model.addAttribute("contact", new Contact());
-        return "new";
-    }
-
-    @PostMapping("/contacts/new")
-    String newContact(@RequestParam("first_name") String firstName,
-                      @RequestParam("last_name") String lastName,
-                      @RequestParam("phone") String phone,
-                      @RequestParam("email") String email,
-                      RedirectAttributes redirectAttributes) {
-        var contact = Contact.builder().first(firstName).last(lastName).phone(phone)
-                .email(email).build();
-        repository.save(contact);
-
-        redirectAttributes.addFlashAttribute("message",
-                "Created new contact %s %s!".formatted(contact.getFirst(), contact.getLast()));
-
-        return "redirect:/contacts";
+    @Bean
+    public ThymeleafViewResolver viewResolver(){
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine());
+        // NOTE 'order' and 'viewNames' are optional
+        viewResolver.setOrder(1);
+        viewResolver.setViewNames(new String[] {".html", ".xhtml"});
+        viewResolver.setRedirectHttp10Compatible(false);
+        return viewResolver;
     }
 }
